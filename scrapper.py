@@ -57,6 +57,21 @@ class RegionSpider(scrapy.Spider):
             yield(region)
 
 
+class ProvinceSpider(scrapy.Spider):
+    name = "provinces"
+
+    custom_settings = {
+        'FEED_URI': province_file.as_uri(),
+        'FEED_FORMAT': 'json'
+    }
+
+    def start_requests(self):
+        pass
+
+    def parse(self, response):
+        pass
+
+
 regionProcess = CrawlerProcess()
 
 regionProcess.crawl(RegionSpider)

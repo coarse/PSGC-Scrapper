@@ -13,6 +13,8 @@ citimuni_file = current_directory/'data'/'citimuni.json'
 barangays_file = current_directory/'data'/'barangays.json'
 logs_file = current_directory/'logs.txt'
 
+DOWNLOAD_TiMEOUT = 120
+
 class RegionSpider(Spider):
     name = "regions"
     base_url = 'https://psa.gov.ph/classification/psgc'
@@ -71,7 +73,7 @@ class ProvinceSpider(Spider):
         'FEED_FORMAT': 'json',
         'RETRY_ENABLED': 1,
         'RETRY_TIMES': 2,
-        'DOWNLOAD_TIMEOUT': 45,
+        'DOWNLOAD_TIMEOUT': DOWNLOAD_TIMEOUT,
         'DOWNLOAD_DELAY': 0,
         'CONCURRENT_REQUESTS': 100,
         'CONCURRENT_REQUESTS_PER_DOMAIN': 100,
@@ -132,7 +134,7 @@ class CitiMuniSpider(Spider):
         'FEED_FORMAT': 'json',
         'RETRY_ENABLED': 1,
         'RETRY_TIMES': 2,
-        'DOWNLOAD_TIMEOUT': 45,
+        'DOWNLOAD_TIMEOUT': DOWNLOAD_TIMEOUT,
         'DOWNLOAD_DELAY': 0,
         'CONCURRENT_REQUESTS': 100,
         'CONCURRENT_REQUESTS_PER_DOMAIN': 100,
@@ -196,7 +198,7 @@ class BarangaySpider(Spider):
         'FEED_FORMAT': 'json',
         'RETRY_ENABLED': 1,
         'RETRY_TIMES': 2,
-        'DOWNLOAD_TIMEOUT': 45,
+        'DOWNLOAD_TIMEOUT': DOWNLOAD_TIMEOUT,
         'DOWNLOAD_DELAY': 0,
         'CONCURRENT_REQUESTS': 100,
         'CONCURRENT_REQUESTS_PER_DOMAIN': 100,
@@ -264,8 +266,9 @@ class BarangaySpider(Spider):
                 )
             )
 
-configure_logging()
-logging.basicConfig(filename=logs_file, format='%(levelname)s: %(message)s', level=logging.ERROR)
+configure_logging(install_root_handler=False)
+logging.basicConfig(filename='info.txt', format='%(levelname)s: %(message)s', level=logging.INFO)
+logging.basicConfig(filename='error.txt', format='%(levelname)s: %(message)s', level=logging.ERROR)
 runner = CrawlerRunner()
 
 @defer.inlineCallbacks

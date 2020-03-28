@@ -59,6 +59,7 @@ class RegionSpider(scrapy.Spider):
 
 class ProvinceSpider(scrapy.Spider):
     name = "provinces"
+    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
 
     custom_settings = {
         'FEED_URI': provinces_file.as_uri(),
@@ -77,8 +78,37 @@ class ProvinceSpider(scrapy.Spider):
                 cb_kwargs=dict(region_code=region['code'])
             )
 
-    def parse(self, response):
-        pass
+    def parse(self, response, region_code):
+        tables = response.css('table#classifytable')
+        x, province_table = tables
+        province_rows = province_table.css('tbody > tr')
+
+        for row in province_rows:
+            row_text = [x.get() for x in row.css('td > a::text')]\
+                     + [x.get() for x in row.css('td::text')]
+            income_class = ''
+            if len(row_text) < 5:
+                name, code, info, population = row_text
+            else:
+                name, code, info, income_class, population = row_text
+
+            province = dict(
+                code=code,
+                name=name,
+                region_code=region_code,
+                url=dict(
+                    provinces=f'{self.base_url}/provinces/{code}',
+                    citimuni=f'{self.base_url}/citimuni/{code}',
+                    barangays=f'{self.base_url}/citimuni/{code}'
+                ),
+                info=info,
+                income_class=income_class,
+                stats=dict(
+                    population=population
+                )
+            )
+
+            yield(province)
 
 
 regionProcess = CrawlerProcess()

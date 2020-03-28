@@ -41,16 +41,16 @@ class RegionSpider(scrapy.Spider):
                 code=code,
                 name=name,
                 urls=dict(
-                provinces=f'{self.base_url}/provinces/{code}',
-                citimuni=f'{self.base_url}/citimuni/{code}',
-                barangays=f'{self.base_url}/barangays/{code}'
+                    provinces=f'{self.base_url}/provinces/{code}',
+                    citimuni=f'{self.base_url}/citimuni/{code}',
+                    barangays=f'{self.base_url}/barangays/{code}'
                 ),
                 stats=dict(
-                provinces=provinces,
-                cities=cities,
-                municipalities=municipalities,
-                barangays=barangays,
-                population=population
+                    provinces=provinces,
+                    cities=cities,
+                    municipalities=municipalities,
+                    barangays=barangays,
+                    population=population
                 )
             )
 

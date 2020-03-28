@@ -186,7 +186,7 @@ class BarangaySpider(Spider):
 
         for _citimuni in citimuni:
             yield Request(
-                url=_citimuni['url']['citimuni'],
+                url=_citimuni['url']['barangays'],
                 callback=self.parse,
                 cb_kwargs=dict(
                     region_code=_citimuni['region_code'],

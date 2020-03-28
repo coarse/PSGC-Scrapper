@@ -225,8 +225,9 @@ class BarangaySpider(Spider):
 
         next_page = response.css('li.pager-next a::attr(href)').get()
         if next_page:
+            url = f'${self.base_url}/${next_page}'
             yield Request(
-                url=next_page,
+                url=url,
                 callback=self.parse,
                 cb_kwargs=dict(
                     region_code=region_code,

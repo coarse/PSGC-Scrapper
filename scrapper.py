@@ -112,7 +112,7 @@ class ProvinceSpider(scrapy.Spider):
             yield(province)
 
 
-class ProvinceSpider(scrapy.Spider):
+class CitiMuniSpider(scrapy.Spider):
     name = "provinces"
     base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
 

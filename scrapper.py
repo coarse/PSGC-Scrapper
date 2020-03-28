@@ -3,12 +3,14 @@ from scrapy.crawler import CrawlerProcess
 from pathlib import Path
 
 current_directory = Path(__file__).parent.absolute()
+regions_file = current_directory/'data'/'regions.json'
+
 
 class RegionSpider(scrapy.Spider):
     name = "regions"
 
     custom_settings = {
-        'FEED_URI': (current_directory/'data'/'regions.json').as_uri(),
+        'FEED_URI': regions_file.as_uri(),
         'FEED_FORMAT': 'json'
     }
 

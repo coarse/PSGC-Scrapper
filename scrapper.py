@@ -67,7 +67,16 @@ class ProvinceSpider(scrapy.Spider):
     }
 
     def start_requests(self):
-        pass
+        regions = []
+        with open(regions_file, 'r') as file:
+            regions = json.load(file)
+
+        for region in regions:
+            yield scrapy.Request(
+                url=region['urls']['provinces'],
+                callback=self.parse,
+                cb_kwargs=dict(region_code=region['code'])
+            )
 
     def parse(self, response):
         pass

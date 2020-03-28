@@ -1,17 +1,21 @@
-import scrapy
-from scrapy.crawler import CrawlerProcess
+from scrapy import Request, Spider
+from twisted.internet import reactor, defer
+from scrapy.crawler import CrawlerRunner
+from scrapy.utils.log import configure_logging
 from pathlib import Path
+import logging
 import json
 
 current_directory = Path(__file__).parent.absolute()
 regions_file = current_directory/'data'/'regions.json'
 provinces_file = current_directory/'data'/'provinces.json'
 citimuni_file = current_directory/'data'/'citimuni.json'
+barangays_file = current_directory/'data'/'barangays.json'
+logs_file = current_directory/'logs.txt'
 
-
-class RegionSpider(scrapy.Spider):
+class RegionSpider(Spider):
     name = "regions"
-    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+    base_url = 'https://psa.gov.ph/classification/psgc'
 
     custom_settings = {
         'FEED_URI': regions_file.as_uri(),
@@ -20,10 +24,10 @@ class RegionSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            f'{self.base_url}/regions',
+            f'{self.base_url}/?q=psgc/regions',
         ]
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse)
+            yield Request(url=url, callback=self.parse)
 
     def parse(self, response):
         regions = response.css('table#classifytable')
@@ -42,9 +46,9 @@ class RegionSpider(scrapy.Spider):
                 code=code,
                 name=name,
                 url=dict(
-                    provinces=f'{self.base_url}/provinces/{code}',
-                    citimuni=f'{self.base_url}/citimuni/{code}',
-                    barangays=f'{self.base_url}/barangays/{code}'
+                    provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
+                    citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
+                    barangays=f'{self.base_url}/?q=psgc/barangays/{code}'
                 ),
                 stats=dict(
                     provinces=provinces,
@@ -58,13 +62,20 @@ class RegionSpider(scrapy.Spider):
             yield(region)
 
 
-class ProvinceSpider(scrapy.Spider):
+class ProvinceSpider(Spider):
     name = "provinces"
-    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+    base_url = 'https://psa.gov.ph/classification/psgc'
 
     custom_settings = {
         'FEED_URI': provinces_file.as_uri(),
-        'FEED_FORMAT': 'json'
+        'FEED_FORMAT': 'json',
+        'RETRY_ENABLED': 1,
+        'RETRY_TIMES': 2,
+        'DOWNLOAD_TIMEOUT': 15,
+        'DOWNLOAD_DELAY': 0,
+        'CONCURRENT_REQUESTS': 100,
+        'CONCURRENT_REQUESTS_PER_DOMAIN': 100,
+        'CONCURRENT_REQUESTS_PER_IP': 100
     }
 
     def start_requests(self):
@@ -73,7 +84,7 @@ class ProvinceSpider(scrapy.Spider):
             regions = json.load(file)
 
         for region in regions:
-            yield scrapy.Request(
+            yield Request(
                 url=region['url']['provinces'],
                 callback=self.parse,
                 cb_kwargs=dict(region_code=region['code'])
@@ -98,9 +109,9 @@ class ProvinceSpider(scrapy.Spider):
                 name=name,
                 region_code=region_code,
                 url=dict(
-                    provinces=f'{self.base_url}/provinces/{code}',
-                    citimuni=f'{self.base_url}/citimuni/{code}',
-                    barangays=f'{self.base_url}/citimuni/{code}'
+                    provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
+                    citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
+                    barangays=f'{self.base_url}/?q=psgc/barangays/{code}'
                 ),
                 info=info,
                 income_class=income_class,
@@ -112,13 +123,20 @@ class ProvinceSpider(scrapy.Spider):
             yield(province)
 
 
-class CitiMuniSpider(scrapy.Spider):
-    name = "provinces"
-    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+class CitiMuniSpider(Spider):
+    name = "citimuni"
+    base_url = 'https://psa.gov.ph/classification/psgc'
 
     custom_settings = {
         'FEED_URI': citimuni_file.as_uri(),
-        'FEED_FORMAT': 'json'
+        'FEED_FORMAT': 'json',
+        'RETRY_ENABLED': 1,
+        'RETRY_TIMES': 2,
+        'DOWNLOAD_TIMEOUT': 15,
+        'DOWNLOAD_DELAY': 0,
+        'CONCURRENT_REQUESTS': 100,
+        'CONCURRENT_REQUESTS_PER_DOMAIN': 100,
+        'CONCURRENT_REQUESTS_PER_IP': 100
     }
 
     def start_requests(self):
@@ -127,7 +145,7 @@ class CitiMuniSpider(scrapy.Spider):
             provinces = json.load(file)
 
         for province in provinces:
-            yield scrapy.Request(
+            yield Request(
                 url=province['url']['citimuni'],
                 callback=self.parse,
                 cb_kwargs=dict(
@@ -156,9 +174,9 @@ class CitiMuniSpider(scrapy.Spider):
                 region_code=region_code,
                 province_code=province_code,
                 url=dict(
-                    provinces=f'{self.base_url}/provinces/{code}',
-                    citimuni=f'{self.base_url}/citimuni/{code}',
-                    barangays=f'{self.base_url}/citimuni/{code}'
+                    provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
+                    citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
+                    barangays=f'{self.base_url}/?q=psgc/barangays/{code}'
                 ),
                 income_class=income_class,
                 stats=dict(
@@ -169,15 +187,94 @@ class CitiMuniSpider(scrapy.Spider):
             yield(citimuni)
 
 
-regionProcess = CrawlerProcess()
-provinceProcess = CrawlerProcess()
-citiMuniProcess = CrawlerProcess()
+class BarangaySpider(Spider):
+    name = "barangays"
+    base_url = 'https://psa.gov.ph/classification/psgc'
 
-regionProcess.crawl(RegionSpider)
-regionProcess.start()
+    custom_settings = {
+        'FEED_URI': barangays_file.as_uri(),
+        'FEED_FORMAT': 'json',
+        'RETRY_ENABLED': 1,
+        'RETRY_TIMES': 2,
+        'DOWNLOAD_TIMEOUT': 15,
+        'DOWNLOAD_DELAY': 0,
+        'CONCURRENT_REQUESTS': 100,
+        'CONCURRENT_REQUESTS_PER_DOMAIN': 100,
+        'CONCURRENT_REQUESTS_PER_IP': 100
+    }
 
-provinceProcess.crawl(ProvinceSpider)
-provinceProcess.start()
+    def start_requests(self):
+        citimuni = []
+        with open(citimuni_file, 'r') as file:
+            citimuni = json.load(file)
 
-citiMuniProcess.crawl(CitiMuniSpider)
-citiMuniProcess.start()
+        for _citimuni in citimuni:
+            yield Request(
+                url=_citimuni['url']['barangays'],
+                callback=self.parse,
+                cb_kwargs=dict(
+                    region_code=_citimuni['region_code'],
+                    province_code=_citimuni['province_code'],
+                    citimuni_code=_citimuni['code']
+                )
+            )
+
+    def parse(self, response, region_code, province_code, citimuni_code):
+        tables = response.css('table#classifytable')
+        try:
+            x, barangay_table = tables
+        except e:
+            input()
+        barangay_rows = barangay_table.css('tbody > tr')
+
+        for row in barangay_rows:
+            row_text = [x.get() for x in row.css('td > a::text')]\
+                     + [x.get() for x in row.css('td::text')]   
+            name, code, _type, population = row_text
+
+            barangay = dict(
+                code=code,
+                name=name,
+                region_code=region_code,
+                province_code=province_code,
+                citimuni_code=citimuni_code,
+                url=dict(
+                    provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
+                    citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
+                    barangays=f'{self.base_url}/?q=psgc/barangays/{code}'    
+                ),
+                type=_type,
+                stats=dict(
+                    population=population
+                )
+            )
+
+            yield(barangay)
+
+        next_page = response.css('li.pager-next a::attr(href)').get()
+        if next_page:
+            url = f'{self.base_url}/{next_page}'
+            yield Request(
+                url=url,
+                callback=self.parse,
+                cb_kwargs=dict(
+                    region_code=region_code,
+                    province_code=province_code,
+                    citimuni_code=citimuni_code
+                )
+            )
+
+configure_logging()
+logging.basicConfig(filename=logs_file, format='%(levelname)s: %(message)s', level=logging.ERROR)
+runner = CrawlerRunner()
+
+@defer.inlineCallbacks
+def crawl():
+    yield runner.crawl(RegionSpider)
+    yield runner.crawl(ProvinceSpider)
+    yield runner.crawl(CitiMuniSpider)
+    yield runner.crawl(BarangaySpider)
+    reactor.stop()
+
+crawl()
+reactor.run()

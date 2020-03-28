@@ -62,7 +62,7 @@ class ProvinceSpider(scrapy.Spider):
     name = "provinces"
 
     custom_settings = {
-        'FEED_URI': province_file.as_uri(),
+        'FEED_URI': provinces_file.as_uri(),
         'FEED_FORMAT': 'json'
     }
 

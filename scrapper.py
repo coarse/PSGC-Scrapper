@@ -112,6 +112,10 @@ class ProvinceSpider(scrapy.Spider):
 
 
 regionProcess = CrawlerProcess()
+provinceProcess = CrawlerProcess()
 
 regionProcess.crawl(RegionSpider)
 regionProcess.start()
+
+provinceProcess.crawl(ProvinceSpider)
+provinceProcess.start()

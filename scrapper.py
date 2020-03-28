@@ -1,5 +1,7 @@
 from scrapy import Request, Spider
-from scrapy.crawler import CrawlerProcess
+from twisted.internet import reactor, defer
+from scrapy.crawler import CrawlerRunner
+from scrapy.utils.log import configure_logging
 from pathlib import Path
 import json
 
@@ -241,19 +243,16 @@ class BarangaySpider(Spider):
             )
 
 
-regionProcess = CrawlerProcess()
-provinceProcess = CrawlerProcess()
-citiMuniProcess = CrawlerProcess()
-barangayProcess = CrawlerProcess()
+configure_logging()
+runner = CrawlerRunner()
 
-regionProcess.crawl(RegionSpider)
-regionProcess.start()
+@defer.inlineCallbacks
+def crawl():
+    yield runner.crawl(RegionSpider)
+    yield runner.crawl(ProvinceSpider)
+    yield runner.crawl(CitiMuniSpider)
+    yield runner.crawl(BarangaySpider)
+    reactor.stop()
 
-provinceProcess.crawl(ProvinceSpider)
-provinceProcess.start()
-
-citiMuniProcess.crawl(CitiMuniSpider)
-citiMuniProcess.start()
-
-barangayProcess.crawl(BarangaySpider)
-barangayProcess.start()
+crawl()
+reactor.run()

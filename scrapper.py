@@ -6,6 +6,7 @@ import json
 current_directory = Path(__file__).parent.absolute()
 regions_file = current_directory/'data'/'regions.json'
 provinces_file = current_directory/'data'/'provinces.json'
+citimuni_file = current_directory/'data'/'citimuni.json'
 
 
 class RegionSpider(scrapy.Spider):

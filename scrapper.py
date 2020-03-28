@@ -170,7 +170,7 @@ class CitiMuniSpider(scrapy.Spider):
             yield(citimuni)
 
 
-class CitiMuniSpider(scrapy.Spider):
+class BarangaySpider(scrapy.Spider):
     name = "barangays"
     base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
 

@@ -13,7 +13,7 @@ citimuni_file = current_directory/'data'/'citimuni.json'
 barangays_file = current_directory/'data'/'barangays.json'
 logs_file = current_directory/'logs.txt'
 
-DOWNLOAD_TiMEOUT = 120
+DOWNLOAD_TIMEOUT = 120
 
 class RegionSpider(Spider):
     name = "regions"

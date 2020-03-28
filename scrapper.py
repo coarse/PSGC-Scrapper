@@ -180,7 +180,20 @@ class BarangaySpider(scrapy.Spider):
     }
 
     def start_requests(self):
-        pass
+        citimuni = []
+        with open(citimuni_file, 'r') as file:
+            citimuni = json.load(file)
+
+        for _citimuni in citimuni:
+            yield scrapy.Request(
+                url=_citimuni['url']['citimuni'],
+                callback=self.parse,
+                cb_kwargs=dict(
+                    region_code=_citimuni['region_code'],
+                    province_code=_citimuni['proince_code'],
+                    citimuni_code=_citimuni['code']
+                )
+            )
 
     def parse(self, response, region_code, province_code, citimuni_code):
         pass
@@ -194,4 +207,5 @@ provinceProcess.crawl(ProvinceSpider)
 provinceProcess.start()
 
 citiMuniProcess.crawl(CitiMuniSpider)
+
 citiMuniProcess.start()

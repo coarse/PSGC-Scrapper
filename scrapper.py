@@ -196,7 +196,45 @@ class BarangaySpider(scrapy.Spider):
             )
 
     def parse(self, response, region_code, province_code, citimuni_code):
-        pass
+        tables = response.css('table#classifytable')
+        x, barangay_table = tables
+        barangay_rows = barangay_table.css('tbody > tr')
+
+        for row in barangay_rows:
+            row_text = [x.get() for x in row.css('td > a::text')]\
+                     + [x.get() for x in row.css('td::text')]   
+            name, code, _type, population = row_text
+
+            barangay = dict(
+                code=code,
+                name=name,
+                region_code=region_code,
+                province_code=province_code,
+                citimuni_code=citimuni_code,
+                url=dict(
+                    provinces=f'{self.base_url}/provinces/{code}',
+                    citimuni=f'{self.base_url}/citimuni/{code}',
+                    barangays=f'{self.base_url}/citimuni/{code}'    
+                ),
+                type=_type,
+                stats=dict(
+                    population=population
+                )
+            )
+
+            yield(barangay)
+
+        next_page = response.css('li.pager-next a::attr(href)').get()
+        if next_page:
+            yield scrapy.Request(
+                url=next_page,
+                callback=self.parse,
+                cb_kwargs=dict(
+                    region_code=region_code,
+                    province_code=province_code,
+                    citimuni_code=citimuni_code
+                )
+            )
 
 
 

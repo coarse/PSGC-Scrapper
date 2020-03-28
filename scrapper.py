@@ -3,6 +3,7 @@ from twisted.internet import reactor, defer
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from pathlib import Path
+import logging
 import json
 
 current_directory = Path(__file__).parent.absolute()
@@ -10,7 +11,7 @@ regions_file = current_directory/'data'/'regions.json'
 provinces_file = current_directory/'data'/'provinces.json'
 citimuni_file = current_directory/'data'/'citimuni.json'
 barangays_file = current_directory/'data'/'barangays.json'
-
+logs_file = current_directory/'logs.txt'
 
 class RegionSpider(Spider):
     name = "regions"
@@ -67,7 +68,14 @@ class ProvinceSpider(Spider):
 
     custom_settings = {
         'FEED_URI': provinces_file.as_uri(),
-        'FEED_FORMAT': 'json'
+        'FEED_FORMAT': 'json',
+        'RETRY_ENABLED': 1,
+        'RETRY_TIMES': 2,
+        'DOWNLOAD_TIMEOUT': 15,
+        'DOWNLOAD_DELAY': 0,
+        'CONCURRENT_REQUESTS': 100,
+        'CONCURRENT_REQUESTS_PER_DOMAIN': 100,
+        'CONCURRENT_REQUESTS_PER_IP': 100
     }
 
     def start_requests(self):
@@ -121,7 +129,14 @@ class CitiMuniSpider(Spider):
 
     custom_settings = {
         'FEED_URI': citimuni_file.as_uri(),
-        'FEED_FORMAT': 'json'
+        'FEED_FORMAT': 'json',
+        'RETRY_ENABLED': 1,
+        'RETRY_TIMES': 2,
+        'DOWNLOAD_TIMEOUT': 15,
+        'DOWNLOAD_DELAY': 0,
+        'CONCURRENT_REQUESTS': 100,
+        'CONCURRENT_REQUESTS_PER_DOMAIN': 100,
+        'CONCURRENT_REQUESTS_PER_IP': 100
     }
 
     def start_requests(self):
@@ -178,7 +193,14 @@ class BarangaySpider(Spider):
 
     custom_settings = {
         'FEED_URI': barangays_file.as_uri(),
-        'FEED_FORMAT': 'json'
+        'FEED_FORMAT': 'json',
+        'RETRY_ENABLED': 1,
+        'RETRY_TIMES': 2,
+        'DOWNLOAD_TIMEOUT': 15,
+        'DOWNLOAD_DELAY': 0,
+        'CONCURRENT_REQUESTS': 100,
+        'CONCURRENT_REQUESTS_PER_DOMAIN': 100,
+        'CONCURRENT_REQUESTS_PER_IP': 100
     }
 
     def start_requests(self):
@@ -242,8 +264,8 @@ class BarangaySpider(Spider):
                 )
             )
 
-
 configure_logging()
+logging.basicConfig(filename=logs_file, format='%(levelname)s: %(message)s', level=logging.ERROR)
 runner = CrawlerRunner()
 
 @defer.inlineCallbacks

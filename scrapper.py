@@ -1,6 +1,7 @@
 import scrapy
 from scrapy.crawler import CrawlerProcess
 from pathlib import Path
+import json
 
 current_directory = Path(__file__).parent.absolute()
 regions_file = current_directory/'data'/'regions.json'

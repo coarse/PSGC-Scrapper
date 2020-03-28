@@ -241,6 +241,10 @@ class BarangaySpider(Spider):
             )
 
 
+regionProcess = CrawlerProcess()
+provinceProcess = CrawlerProcess()
+citiMuniProcess = CrawlerProcess()
+barangayProcess = CrawlerProcess()
 
 regionProcess.crawl(RegionSpider)
 regionProcess.start()
@@ -249,5 +253,7 @@ provinceProcess.crawl(ProvinceSpider)
 provinceProcess.start()
 
 citiMuniProcess.crawl(CitiMuniSpider)
-
 citiMuniProcess.start()
+
+barangayProcess.crawl(BarangaySpider)
+barangayProcess.start()

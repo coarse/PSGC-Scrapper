@@ -136,8 +136,37 @@ class CitiMuniSpider(scrapy.Spider):
                 )
             )
 
-    def parse(self, response, region_code):
-        pass
+    def parse(self, response, region_code, province_code):
+        tables = response.css('table#classifytable')
+        x, *citimuni_tables = tables
+
+        citimuni_rows = []
+        for citimuni_table in citimuni_tables:
+            citimuni_rows = citimuni_rows + citimuni_table.css('tbody > tr')
+
+        for row in citimuni_rows:
+            row_text = [x.get() for x in row.css('td > a::text')]\
+                     + [x.get() for x in row.css('td::text')]
+            
+            name, code, income_class, population = row_text
+
+            citimuni = dict(
+                code=code,
+                name=name,
+                region_code=region_code,
+                province_code=province_code,
+                url=dict(
+                    provinces=f'{self.base_url}/provinces/{code}',
+                    citimuni=f'{self.base_url}/citimuni/{code}',
+                    barangays=f'{self.base_url}/citimuni/{code}'
+                ),
+                income_class=income_class,
+                stats=dict(
+                    population=population
+                )
+            )
+
+            yield(citimuni)
 
 
 regionProcess.crawl(RegionSpider)

@@ -190,7 +190,7 @@ class BarangaySpider(scrapy.Spider):
                 callback=self.parse,
                 cb_kwargs=dict(
                     region_code=_citimuni['region_code'],
-                    province_code=_citimuni['proince_code'],
+                    province_code=_citimuni['province_code'],
                     citimuni_code=_citimuni['code']
                 )
             )

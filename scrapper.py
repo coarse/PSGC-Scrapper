@@ -112,8 +112,21 @@ class ProvinceSpider(scrapy.Spider):
             yield(province)
 
 
-regionProcess = CrawlerProcess()
-provinceProcess = CrawlerProcess()
+class ProvinceSpider(scrapy.Spider):
+    name = "provinces"
+    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+
+    custom_settings = {
+        'FEED_URI': citimuni_file.as_uri(),
+        'FEED_FORMAT': 'json'
+    }
+
+    def start_requests(self):
+        pass
+
+    def parse(self, response, region_code):
+        pass
+
 
 regionProcess.crawl(RegionSpider)
 regionProcess.start()

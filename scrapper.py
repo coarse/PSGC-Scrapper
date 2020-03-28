@@ -11,7 +11,7 @@ barangays_file = current_directory/'data'/'barangays.json'
 
 class RegionSpider(Spider):
     name = "regions"
-    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+    base_url = 'https://psa.gov.ph/classification/psgc'
 
     custom_settings = {
         'FEED_URI': regions_file.as_uri(),
@@ -20,7 +20,7 @@ class RegionSpider(Spider):
 
     def start_requests(self):
         urls = [
-            f'{self.base_url}/regions',
+            f'{self.base_url}/?q=psgc/regions',
         ]
         for url in urls:
             yield Request(url=url, callback=self.parse)
@@ -42,9 +42,9 @@ class RegionSpider(Spider):
                 code=code,
                 name=name,
                 url=dict(
-                    provinces=f'{self.base_url}/provinces/{code}',
-                    citimuni=f'{self.base_url}/citimuni/{code}',
-                    barangays=f'{self.base_url}/barangays/{code}'
+                    provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
+                    citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
+                    barangays=f'{self.base_url}/?q=psgc/barangays/{code}'
                 ),
                 stats=dict(
                     provinces=provinces,
@@ -60,7 +60,7 @@ class RegionSpider(Spider):
 
 class ProvinceSpider(Spider):
     name = "provinces"
-    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+    base_url = 'https://psa.gov.ph/classification/psgc'
 
     custom_settings = {
         'FEED_URI': provinces_file.as_uri(),
@@ -98,9 +98,9 @@ class ProvinceSpider(Spider):
                 name=name,
                 region_code=region_code,
                 url=dict(
-                    provinces=f'{self.base_url}/provinces/{code}',
-                    citimuni=f'{self.base_url}/citimuni/{code}',
-                    barangays=f'{self.base_url}/citimuni/{code}'
+                    provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
+                    citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
+                    barangays=f'{self.base_url}/?q=psgc/citimuni/{code}'
                 ),
                 info=info,
                 income_class=income_class,
@@ -114,7 +114,7 @@ class ProvinceSpider(Spider):
 
 class CitiMuniSpider(Spider):
     name = "citimuni"
-    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+    base_url = 'https://psa.gov.ph/classification/psgc'
 
     custom_settings = {
         'FEED_URI': citimuni_file.as_uri(),
@@ -156,9 +156,9 @@ class CitiMuniSpider(Spider):
                 region_code=region_code,
                 province_code=province_code,
                 url=dict(
-                    provinces=f'{self.base_url}/provinces/{code}',
-                    citimuni=f'{self.base_url}/citimuni/{code}',
-                    barangays=f'{self.base_url}/citimuni/{code}'
+                    provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
+                    citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
+                    barangays=f'{self.base_url}/?q=psgc/citimuni/{code}'
                 ),
                 income_class=income_class,
                 stats=dict(
@@ -171,7 +171,7 @@ class CitiMuniSpider(Spider):
 
 class BarangaySpider(Spider):
     name = "barangays"
-    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+    base_url = 'https://psa.gov.ph/classification/psgc'
 
     custom_settings = {
         'FEED_URI': barangays_file.as_uri(),
@@ -211,9 +211,9 @@ class BarangaySpider(Spider):
                 province_code=province_code,
                 citimuni_code=citimuni_code,
                 url=dict(
-                    provinces=f'{self.base_url}/provinces/{code}',
-                    citimuni=f'{self.base_url}/citimuni/{code}',
-                    barangays=f'{self.base_url}/citimuni/{code}'    
+                    provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
+                    citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
+                    barangays=f'{self.base_url}/?q=psgc/citimuni/{code}'    
                 ),
                 type=_type,
                 stats=dict(

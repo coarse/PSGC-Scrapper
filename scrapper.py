@@ -169,8 +169,15 @@ class CitiMuniSpider(scrapy.Spider):
             yield(citimuni)
 
 
+regionProcess = CrawlerProcess()
+provinceProcess = CrawlerProcess()
+citiMuniProcess = CrawlerProcess()
+
 regionProcess.crawl(RegionSpider)
 regionProcess.start()
 
 provinceProcess.crawl(ProvinceSpider)
 provinceProcess.start()
+
+citiMuniProcess.crawl(CitiMuniSpider)
+citiMuniProcess.start()

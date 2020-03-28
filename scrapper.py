@@ -170,9 +170,22 @@ class CitiMuniSpider(scrapy.Spider):
             yield(citimuni)
 
 
-regionProcess = CrawlerProcess()
-provinceProcess = CrawlerProcess()
-citiMuniProcess = CrawlerProcess()
+class CitiMuniSpider(scrapy.Spider):
+    name = "barangays"
+    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+
+    custom_settings = {
+        'FEED_URI': barangays_file.as_uri(),
+        'FEED_FORMAT': 'json'
+    }
+
+    def start_requests(self):
+        pass
+
+    def parse(self, response, region_code, province_code, citimuni_code):
+        pass
+
+
 
 regionProcess.crawl(RegionSpider)
 regionProcess.start()

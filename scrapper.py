@@ -223,10 +223,7 @@ class BarangaySpider(Spider):
 
     def parse(self, response, region_code, province_code, citimuni_code):
         tables = response.css('table#classifytable')
-        try:
-            x, barangay_table = tables
-        except e:
-            input()
+        x, barangay_table = tables
         barangay_rows = barangay_table.css('tbody > tr')
 
         for row in barangay_rows:

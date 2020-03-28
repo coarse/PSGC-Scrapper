@@ -1,26 +1,30 @@
 import scrapy
 from scrapy.crawler import CrawlerProcess
 from pathlib import Path
+import json
 
 current_directory = Path(__file__).parent.absolute()
+regions_file = current_directory/'data'/'regions.json'
+provinces_file = current_directory/'data'/'provinces.json'
+
 
 class RegionSpider(scrapy.Spider):
     name = "regions"
+    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
 
     custom_settings = {
-        'FEED_URI': (current_directory/'data'/'regions.json').as_uri(),
+        'FEED_URI': regions_file.as_uri(),
         'FEED_FORMAT': 'json'
     }
 
     def start_requests(self):
         urls = [
-        'https://psa.gov.ph/classification/psgc/?q=psgc/regions',
+            f'{self.base_url}/regions',
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
-        base_url = response.url.replace('/regions', '')
         regions = response.css('table#classifytable')
 
         for region in regions:
@@ -37,24 +41,81 @@ class RegionSpider(scrapy.Spider):
                 code=code,
                 name=name,
                 urls=dict(
-                provinces=f'{base_url}/provinces/{code}',
-                cities=f'{base_url}/cities/{code}',
-                municipalities=f'{base_url}/municipalities/{code}',
-                barangays=f'{base_url}/barangays/{code}'
+                    provinces=f'{self.base_url}/provinces/{code}',
+                    citimuni=f'{self.base_url}/citimuni/{code}',
+                    barangays=f'{self.base_url}/barangays/{code}'
                 ),
                 stats=dict(
-                provinces=provinces,
-                cities=cities,
-                municipalities=municipalities,
-                barangays=barangays,
-                population=population
+                    provinces=provinces,
+                    cities=cities,
+                    municipalities=municipalities,
+                    barangays=barangays,
+                    population=population
                 )
             )
 
             yield(region)
 
 
+class ProvinceSpider(scrapy.Spider):
+    name = "provinces"
+    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+
+    custom_settings = {
+        'FEED_URI': provinces_file.as_uri(),
+        'FEED_FORMAT': 'json'
+    }
+
+    def start_requests(self):
+        regions = []
+        with open(regions_file, 'r') as file:
+            regions = json.load(file)
+
+        for region in regions:
+            yield scrapy.Request(
+                url=region['urls']['provinces'],
+                callback=self.parse,
+                cb_kwargs=dict(region_code=region['code'])
+            )
+
+    def parse(self, response, region_code):
+        tables = response.css('table#classifytable')
+        x, province_table = tables
+        province_rows = province_table.css('tbody > tr')
+
+        for row in province_rows:
+            row_text = [x.get() for x in row.css('td > a::text')]\
+                     + [x.get() for x in row.css('td::text')]
+            income_class = ''
+            if len(row_text) < 5:
+                name, code, info, population = row_text
+            else:
+                name, code, info, income_class, population = row_text
+
+            province = dict(
+                code=code,
+                name=name,
+                region_code=region_code,
+                url=dict(
+                    provinces=f'{self.base_url}/provinces/{code}',
+                    citimuni=f'{self.base_url}/citimuni/{code}',
+                    barangays=f'{self.base_url}/citimuni/{code}'
+                ),
+                info=info,
+                income_class=income_class,
+                stats=dict(
+                    population=population
+                )
+            )
+
+            yield(province)
+
+
 regionProcess = CrawlerProcess()
+provinceProcess = CrawlerProcess()
 
 regionProcess.crawl(RegionSpider)
 regionProcess.start()
+
+provinceProcess.crawl(ProvinceSpider)
+provinceProcess.start()

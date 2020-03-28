@@ -1,5 +1,4 @@
-import scrapy
-from scrapy.crawler import CrawlerProcess
+from scrapy.crawler import CrawlerProcess, Request, Spider
 from pathlib import Path
 import json
 
@@ -10,7 +9,7 @@ citimuni_file = current_directory/'data'/'citimuni.json'
 barangays_file = current_directory/'data'/'barangays.json'
 
 
-class RegionSpider(scrapy.Spider):
+class RegionSpider(Spider):
     name = "regions"
     base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
 
@@ -24,7 +23,7 @@ class RegionSpider(scrapy.Spider):
             f'{self.base_url}/regions',
         ]
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse)
+            yield Request(url=url, callback=self.parse)
 
     def parse(self, response):
         regions = response.css('table#classifytable')
@@ -59,7 +58,7 @@ class RegionSpider(scrapy.Spider):
             yield(region)
 
 
-class ProvinceSpider(scrapy.Spider):
+class ProvinceSpider(Spider):
     name = "provinces"
     base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
 
@@ -74,7 +73,7 @@ class ProvinceSpider(scrapy.Spider):
             regions = json.load(file)
 
         for region in regions:
-            yield scrapy.Request(
+            yield Request(
                 url=region['url']['provinces'],
                 callback=self.parse,
                 cb_kwargs=dict(region_code=region['code'])
@@ -113,7 +112,7 @@ class ProvinceSpider(scrapy.Spider):
             yield(province)
 
 
-class CitiMuniSpider(scrapy.Spider):
+class CitiMuniSpider(Spider):
     name = "citimuni"
     base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
 
@@ -128,7 +127,7 @@ class CitiMuniSpider(scrapy.Spider):
             provinces = json.load(file)
 
         for province in provinces:
-            yield scrapy.Request(
+            yield Request(
                 url=province['url']['citimuni'],
                 callback=self.parse,
                 cb_kwargs=dict(
@@ -170,7 +169,7 @@ class CitiMuniSpider(scrapy.Spider):
             yield(citimuni)
 
 
-class BarangaySpider(scrapy.Spider):
+class BarangaySpider(Spider):
     name = "barangays"
     base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
 
@@ -185,7 +184,7 @@ class BarangaySpider(scrapy.Spider):
             citimuni = json.load(file)
 
         for _citimuni in citimuni:
-            yield scrapy.Request(
+            yield Request(
                 url=_citimuni['url']['citimuni'],
                 callback=self.parse,
                 cb_kwargs=dict(
@@ -226,7 +225,7 @@ class BarangaySpider(scrapy.Spider):
 
         next_page = response.css('li.pager-next a::attr(href)').get()
         if next_page:
-            yield scrapy.Request(
+            yield Request(
                 url=next_page,
                 callback=self.parse,
                 cb_kwargs=dict(

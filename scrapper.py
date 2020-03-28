@@ -1,4 +1,5 @@
-from scrapy.crawler import CrawlerProcess, Request, Spider
+from scrapy import Request, Spider
+from scrapy.crawler import CrawlerProcess
 from pathlib import Path
 import json
 

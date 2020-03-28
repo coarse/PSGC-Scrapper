@@ -10,6 +10,7 @@ provinces_file = current_directory/'data'/'provinces.json'
 
 class RegionSpider(scrapy.Spider):
     name = "regions"
+    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
 
     custom_settings = {
         'FEED_URI': regions_file.as_uri(),
@@ -18,13 +19,12 @@ class RegionSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-        'https://psa.gov.ph/classification/psgc/?q=psgc/regions',
+            f'{self.base_url}/regions',
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
-        base_url = response.url.replace('/regions', '')
         regions = response.css('table#classifytable')
 
         for region in regions:
@@ -41,10 +41,10 @@ class RegionSpider(scrapy.Spider):
                 code=code,
                 name=name,
                 urls=dict(
-                provinces=f'{base_url}/provinces/{code}',
-                cities=f'{base_url}/cities/{code}',
-                municipalities=f'{base_url}/municipalities/{code}',
-                barangays=f'{base_url}/barangays/{code}'
+                provinces=f'{self.base_url}/provinces/{code}',
+                cities=f'{self.base_url}/cities/{code}',
+                municipalities=f'{self.base_url}/municipalities/{code}',
+                barangays=f'{self.base_url}/barangays/{code}'
                 ),
                 stats=dict(
                 provinces=provinces,

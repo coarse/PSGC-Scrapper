@@ -101,7 +101,7 @@ class ProvinceSpider(Spider):
                 url=dict(
                     provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
                     citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
-                    barangays=f'{self.base_url}/?q=psgc/citimuni/{code}'
+                    barangays=f'{self.base_url}/?q=psgc/barangays/{code}'
                 ),
                 info=info,
                 income_class=income_class,
@@ -159,7 +159,7 @@ class CitiMuniSpider(Spider):
                 url=dict(
                     provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
                     citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
-                    barangays=f'{self.base_url}/?q=psgc/citimuni/{code}'
+                    barangays=f'{self.base_url}/?q=psgc/barangays/{code}'
                 ),
                 income_class=income_class,
                 stats=dict(
@@ -197,7 +197,10 @@ class BarangaySpider(Spider):
 
     def parse(self, response, region_code, province_code, citimuni_code):
         tables = response.css('table#classifytable')
-        x, barangay_table = tables
+        try:
+            x, barangay_table = tables
+        except e:
+            input()
         barangay_rows = barangay_table.css('tbody > tr')
 
         for row in barangay_rows:
@@ -214,7 +217,7 @@ class BarangaySpider(Spider):
                 url=dict(
                     provinces=f'{self.base_url}/?q=psgc/provinces/{code}',
                     citimuni=f'{self.base_url}/?q=psgc/citimuni/{code}',
-                    barangays=f'{self.base_url}/?q=psgc/citimuni/{code}'    
+                    barangays=f'{self.base_url}/?q=psgc/barangays/{code}'    
                 ),
                 type=_type,
                 stats=dict(

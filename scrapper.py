@@ -41,7 +41,7 @@ class RegionSpider(scrapy.Spider):
             region = dict(
                 code=code,
                 name=name,
-                urls=dict(
+                url=dict(
                     provinces=f'{self.base_url}/provinces/{code}',
                     citimuni=f'{self.base_url}/citimuni/{code}',
                     barangays=f'{self.base_url}/barangays/{code}'
@@ -74,7 +74,7 @@ class ProvinceSpider(scrapy.Spider):
 
         for region in regions:
             yield scrapy.Request(
-                url=region['urls']['provinces'],
+                url=region['url']['provinces'],
                 callback=self.parse,
                 cb_kwargs=dict(region_code=region['code'])
             )
@@ -128,7 +128,7 @@ class CitiMuniSpider(scrapy.Spider):
 
         for province in provinces:
             yield scrapy.Request(
-                url=province['urls']['citimuni'],
+                url=province['url']['citimuni'],
                 callback=self.parse,
                 cb_kwargs=dict(
                     region_code=province['region_code'],

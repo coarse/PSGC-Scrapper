@@ -6,6 +6,7 @@ import json
 current_directory = Path(__file__).parent.absolute()
 regions_file = current_directory/'data'/'regions.json'
 provinces_file = current_directory/'data'/'provinces.json'
+citimuni_file = current_directory/'data'/'citimuni.json'
 
 
 class RegionSpider(scrapy.Spider):
@@ -40,7 +41,7 @@ class RegionSpider(scrapy.Spider):
             region = dict(
                 code=code,
                 name=name,
-                urls=dict(
+                url=dict(
                     provinces=f'{self.base_url}/provinces/{code}',
                     citimuni=f'{self.base_url}/citimuni/{code}',
                     barangays=f'{self.base_url}/barangays/{code}'
@@ -73,7 +74,7 @@ class ProvinceSpider(scrapy.Spider):
 
         for region in regions:
             yield scrapy.Request(
-                url=region['urls']['provinces'],
+                url=region['url']['provinces'],
                 callback=self.parse,
                 cb_kwargs=dict(region_code=region['code'])
             )
@@ -111,11 +112,72 @@ class ProvinceSpider(scrapy.Spider):
             yield(province)
 
 
+class CitiMuniSpider(scrapy.Spider):
+    name = "provinces"
+    base_url = 'https://psa.gov.ph/classification/psgc/?q=psgc'
+
+    custom_settings = {
+        'FEED_URI': citimuni_file.as_uri(),
+        'FEED_FORMAT': 'json'
+    }
+
+    def start_requests(self):
+        provinces = []
+        with open(provinces_file, 'r') as file:
+            provinces = json.load(file)
+
+        for province in provinces:
+            yield scrapy.Request(
+                url=province['url']['citimuni'],
+                callback=self.parse,
+                cb_kwargs=dict(
+                    region_code=province['region_code'],
+                    province_code=province['code']
+                )
+            )
+
+    def parse(self, response, region_code, province_code):
+        tables = response.css('table#classifytable')
+        x, *citimuni_tables = tables
+
+        citimuni_rows = []
+        for citimuni_table in citimuni_tables:
+            citimuni_rows = citimuni_rows + citimuni_table.css('tbody > tr')
+
+        for row in citimuni_rows:
+            row_text = [x.get() for x in row.css('td > a::text')]\
+                     + [x.get() for x in row.css('td::text')]
+            
+            name, code, income_class, population = row_text
+
+            citimuni = dict(
+                code=code,
+                name=name,
+                region_code=region_code,
+                province_code=province_code,
+                url=dict(
+                    provinces=f'{self.base_url}/provinces/{code}',
+                    citimuni=f'{self.base_url}/citimuni/{code}',
+                    barangays=f'{self.base_url}/citimuni/{code}'
+                ),
+                income_class=income_class,
+                stats=dict(
+                    population=population
+                )
+            )
+
+            yield(citimuni)
+
+
 regionProcess = CrawlerProcess()
 provinceProcess = CrawlerProcess()
+citiMuniProcess = CrawlerProcess()
 
 regionProcess.crawl(RegionSpider)
 regionProcess.start()
 
 provinceProcess.crawl(ProvinceSpider)
 provinceProcess.start()
+
+citiMuniProcess.crawl(CitiMuniSpider)
+citiMuniProcess.start()
